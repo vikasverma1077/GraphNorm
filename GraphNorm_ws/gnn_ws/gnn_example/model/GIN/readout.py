@@ -2,7 +2,7 @@ import torch as th
 import torch.nn as nn
 import numpy as np
 
-from dgl.batched_graph import sum_nodes, mean_nodes, max_nodes
+from dgl import sum_nodes, mean_nodes, max_nodes
 
 
 class SumPooling(nn.Module):
