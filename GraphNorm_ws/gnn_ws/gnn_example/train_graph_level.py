@@ -8,6 +8,9 @@ from model.GCN.gcn_all import GCN
 from Temp.dataset import GINDataset
 from utils.GIN.data_loader import GraphDataLoader, collate
 from utils.scheduler import LinearSchedule
+from sde_lib import VPSDE
+from sde_sampling import get_sampling_fn
+
 
 def set_seed(seed):
     random.seed(seed)
@@ -111,15 +114,39 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer):
     record = {}
     grad_record = {}
     param_record = {}
+    
+    
+    sde = VPSDE(beta_min=args.vp_beta_min, beta_max=args.vp_beta_max, N=args.diffusion_num_scales)
+    eps = 1e-5
+
 
     for epoch in range(args.epoch):
         model.train()
         t0 = time.time()
 
         for graphs, labels in train_loader:
-            labels = labels.cuda()
+            target_reweighted = F.one_hot(labels, args.num_classes).float()
+            
+            
+            if args.score:
+                target_reweighted_s = (target_reweighted - 0.5) * 2.0 #set range from -1.0 to 1.0
+                z = torch.randn_like(target_reweighted_s)
+                time_ = torch.rand(target.shape[0], device=target.device) * (sde.T - eps) + eps
+                mean, std = sde.marginal_prob(target_reweighted_s, time_)
+                perturbed_target = mean + std[:, None] * z # b, c
+            else:
+                time_ = None
+                perturbed_target = None
+                std = None
+
+            print_scale_bias = (i == len(train_loader)-1 and epoch % 50 == 0)
+            
+            labels = labels.cuda() #TODO
             features = graphs.ndata['attr'].cuda()
-            outputs = model(graphs, features)
+            
+            outputs = model(graphs, features, t=time_, y=perturbed_target, std=std)
+            
+            #outputs = model(graphs, features)
 
             optimizer.zero_grad()
 
