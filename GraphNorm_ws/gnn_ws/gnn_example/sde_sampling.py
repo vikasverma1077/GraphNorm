@@ -23,7 +23,7 @@
 import functools
 import torch
 import abc
-from . import sde_lib
+import sde_lib
 import numpy as np
 from datetime import datetime
 from utils import *
