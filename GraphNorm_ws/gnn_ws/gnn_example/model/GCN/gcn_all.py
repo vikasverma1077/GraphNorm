@@ -11,12 +11,12 @@ from model.GCN.embedding import *
 
 class GCN(nn.Module):
 
-    def __init__(self, num_layers, input_dim, hidden_dim,
+    def __init__(self, num_layers, input_dim, num_classes, hidden_dim,
                  output_dim, final_dropout, graph_pooling_type, norm_type='gn'):
         super(GCN, self).__init__()
         #TODO number of classes
         self.num_layers = num_layers
-
+        self.num_classes = num_classes
         self.gcnlayers = torch.nn.ModuleList()
         self.norms = torch.nn.ModuleList()
 
@@ -35,8 +35,8 @@ class GCN(nn.Module):
 
         
         if norm_type == 'cont':
-            self.TimeNet_1 = Time_Embedding(num_classes, hidden_dim, label=False, normalize=False, normalize_spectral=False)
-            self.LabelNet_1 = Time_Embedding(num_classes, hidden_dim, label=True, normalize=False, normalize_spectral=False)
+            self.TimeNet_1 = Time_Embedding(self.num_classes, hidden_dim, label=False, normalize=False, normalize_spectral=False)
+            self.LabelNet_1 = Time_Embedding(self.num_classes, hidden_dim, label=True, normalize=False, normalize_spectral=False)
         
         self.linears_prediction = nn.Linear(hidden_dim, output_dim)
         self.drop = nn.Dropout(final_dropout)

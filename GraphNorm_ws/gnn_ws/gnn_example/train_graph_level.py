@@ -67,7 +67,7 @@ def task_model(args, dataset):
         )
     elif args.model == 'GCN':
         model = GCN(
-            args.n_layers, dataset.dim_nfeats, args.n_hidden,
+            args.n_layers, dataset.dim_nfeats, dataset.gclasses, args.n_hidden,
             dataset.gclasses, args.dropout, args.graph_pooling_type,
             norm_type=args.norm_type
         )
