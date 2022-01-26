@@ -5,7 +5,7 @@ import dgl.function as fn
 from dgl.nn.pytorch.conv import GraphConv
 from model.GIN.readout import SumPooling, AvgPooling, MaxPooling
 from model.Norm.norm import Norm
-import embedding
+from model.GCN.embedding import *
 
 class GCN(nn.Module):
 
