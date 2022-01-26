@@ -2,6 +2,7 @@ import argparse, time, random, os
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from model.GIN.gin_all_fast import GIN
 from model.GCN.gcn_all import GCN
@@ -32,28 +33,6 @@ def param_norm(net):
         ret += torch.norm(param.data)**2
     return torch.sqrt(ret).data.cpu().numpy()
 
-def evaluate(model, dataloader, loss_fcn):
-    model.eval()
-
-    total = 0
-    total_loss = 0
-    total_correct = 0
-    with torch.no_grad():
-        for data in dataloader:
-            graphs, labels = data
-            feat = graphs.ndata['attr'].cuda()
-            labels = labels.cuda()
-            total += len(labels)
-            outputs = model(graphs, feat)
-            _, predicted = torch.max(outputs.data, 1)
-
-            total_correct += (predicted == labels.data).sum().item()
-            loss = loss_fcn(outputs, labels)
-
-            total_loss += loss * len(labels)
-
-    loss, acc = 1.0 * total_loss / total, 1.0 * total_correct / total
-    return loss, acc
 
 def task_data(args, dataset=None):
 
@@ -72,7 +51,7 @@ def task_data(args, dataset=None):
     ).train_valid_loader()
 
 
-    return dataset, train_loader, valid_loader
+    return dataset, train_loader, valid_loader, dataset.gclasses
 
 def task_model(args, dataset):
 
@@ -106,7 +85,50 @@ def task_model(args, dataset):
 
     return model, loss_fcn, optimizer
 
-def train(args, train_loader, valid_loader, model, loss_fcn, optimizer):
+
+def evaluate(model, dataloader, loss_fcn, num_classes):
+    model.eval()
+    
+    sde = VPSDE(beta_min=0.01, beta_max=0.01, N=1000) # bera_min= 0. beta_max=20, diffusion_num_scales=1000
+    eps = 1e-5
+    
+    total = 0
+    total_loss = 0
+    total_correct = 0
+    with torch.no_grad():
+        for data in dataloader:
+            graphs, labels = data
+            
+            target_reweighted = torch.zeros_like(F.one_hot(labels, num_classes).float()) ## make  one hot ##.size, args ## F.one_hot(labels, args.num_classes).float()
+            
+            
+            if args.score:
+                target_reweighted_s = (target_reweighted - 0.5) * 2.0 #set range from -1.0 to 1.0
+                z = torch.randn_like(target_reweighted_s)
+                time_ = 1.0 ## torch.rand(target.shape[0], device=target.device) * (sde.T - eps) + eps
+                mean, std = sde.marginal_prob(target_reweighted_s, time_)
+                perturbed_target = mean + std[:, None] * z # b, c
+            else:
+                time_ = None
+                perturbed_target = None
+                std = None
+                
+            
+            feat = graphs.ndata['attr'].cuda()
+            labels = labels.cuda()
+            total += len(labels)
+            outputs = model(graphs, feat)
+            _, predicted = torch.max(outputs.data, 1)
+
+            total_correct += (predicted == labels.data).sum().item()
+            loss = loss_fcn(outputs, labels)
+
+            total_loss += loss * len(labels)
+
+    loss, acc = 1.0 * total_loss / total, 1.0 * total_correct / total
+    return loss, acc
+
+def train(args, train_loader, valid_loader, model, loss_fcn, optimizer, num_classes):
 
     scheduler = LinearSchedule(optimizer, args.epoch)
 
@@ -116,7 +138,7 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer):
     param_record = {}
     
     
-    sde = VPSDE(beta_min=args.vp_beta_min, beta_max=args.vp_beta_max, N=args.diffusion_num_scales)
+    sde = VPSDE(beta_min=0.01, beta_max=0.01, N=1000) # bera_min= 0. beta_max=20, diffusion_num_scales=1000
     eps = 1e-5
 
 
@@ -124,11 +146,9 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer):
         model.train()
         t0 = time.time()
 
-        for graphs, labels in train_loader:
-            target_reweighted = F.one_hot(labels, args.num_classes).float()
-            
-            
-            if args.score:
+        for graphs, labels in train_loader:        
+            if args.norm_type =='cont':
+                target_reweighted = F.one_hot(labels, num_classes).float()
                 target_reweighted_s = (target_reweighted - 0.5) * 2.0 #set range from -1.0 to 1.0
                 z = torch.randn_like(target_reweighted_s)
                 time_ = torch.rand(target.shape[0], device=target.device) * (sde.T - eps) + eps
@@ -160,8 +180,8 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer):
 
         print('Average Epoch Time {:.4f}'.format(float(sum(dur)/len(dur))))
 
-        valid_loss, valid_acc = evaluate(model, valid_loader, loss_fcn)
-        train_loss, train_acc = evaluate(model, train_loader, loss_fcn)
+        valid_loss, valid_acc = evaluate(model, valid_loader, loss_fcn, num_classes)
+        train_loss, train_acc = evaluate(model, train_loader, loss_fcn. num_classes)
         print('Train acc {:.4f}'.format(float(train_acc)))
         print('Test acc {:.4f}'.format(float(valid_acc)))
 
@@ -187,13 +207,13 @@ def main(args):
     if args.cross_validation:
         for fold_idx in range(10):
             args.fold_idx = fold_idx
-            dataset, train_loader, valid_loader = task_data(args, dataset)
+            dataset, train_loader, valid_loader, num_classes = task_data(args, dataset)
             model, loss_fcn, optimizer = task_model(args, dataset)
-            result_record[args.fold_idx], grad_record[args.fold_idx], param_record[args.fold_idx] = train(args, train_loader, valid_loader, model, loss_fcn, optimizer)
+            result_record[args.fold_idx], grad_record[args.fold_idx], param_record[args.fold_idx] = train(args, train_loader, valid_loader, model, loss_fcn, optimizer, num_classes)
     else:
-        dataset, train_loader, valid_loader = task_data(args, dataset)
+        dataset, train_loader, valid_loader, num_classes = task_data(args, dataset)
         model, loss_fcn, optimizer = task_model(args, dataset)
-        result_record[args.fold_idx], grad_record[args.fold_idx], param_record[args.fold_idx] = train(args, train_loader, valid_loader, model, loss_fcn, optimizer)
+        result_record[args.fold_idx], grad_record[args.fold_idx], param_record[args.fold_idx] = train(args, train_loader, valid_loader, model, loss_fcn, optimizer, num_classes)
 
     return result_record, grad_record, param_record
 
@@ -262,7 +282,7 @@ if __name__ == '__main__':
     parser.add_argument('--degree_as_label', action='store_true',
                         help='use node degree as node labels')
     parser.add_argument('--norm_type', type=str,
-                        default='gn',
+                        default='gn', choices ['bn', 'gn', 'cont'],
                         help='type of normalization')
 
 

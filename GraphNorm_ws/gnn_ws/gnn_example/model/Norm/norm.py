@@ -1,5 +1,65 @@
 import torch
 import torch.nn as nn
+import numpy as np
+
+
+def get_norm(norm, ch, affine=True, twod=True):
+  """Get activation functions from the opt file."""
+
+  if norm == 'none':
+    return nn.Identity()
+  elif norm == 'batch':
+    if twod:
+      return nn.BatchNorm2d(ch, affine = affine)
+    else:
+      return nn.BatchNorm1d(ch, affine = affine)
+  elif norm == 'group':
+    return nn.GroupNorm(num_groups=min(ch // 4, 32), num_channels=ch, eps=1e-5, affine=affine)
+  elif norm == 'layer':
+    return nn.LayerNorm(normalized_shape=ch, eps=1e-5, elementwise_affine=affine)
+  else:
+    raise NotImplementedError('norm choice does not exist')
+
+
+def default_init(scale=1.):
+  """The same initialization used in DDPM."""
+  scale = 1e-10 if scale == 0 else scale
+  return variance_scaling(scale, 'fan_avg', 'uniform')
+
+
+def variance_scaling(scale, mode, distribution,
+                     in_axis=1, out_axis=0,
+                     dtype=torch.float32,
+                     device='cpu'):
+  """Ported from JAX. """
+
+  def _compute_fans(shape, in_axis=1, out_axis=0):
+    receptive_field_size = np.prod(shape) / shape[in_axis] / shape[out_axis]
+    fan_in = shape[in_axis] * receptive_field_size
+    fan_out = shape[out_axis] * receptive_field_size
+    return fan_in, fan_out
+
+  def init(shape, dtype=dtype, device=device):
+    fan_in, fan_out = _compute_fans(shape, in_axis, out_axis)
+    if mode == "fan_in":
+      denominator = fan_in
+    elif mode == "fan_out":
+      denominator = fan_out
+    elif mode == "fan_avg":
+      denominator = (fan_in + fan_out) / 2
+    else:
+      raise ValueError(
+        "invalid mode for variance scaling initializer: {}".format(mode))
+    variance = scale / denominator
+    if distribution == "normal":
+      return torch.randn(*shape, dtype=dtype, device=device) * np.sqrt(variance)
+    elif distribution == "uniform":
+      return (torch.rand(*shape, dtype=dtype, device=device) * 2. - 1.) * np.sqrt(3 * variance)
+    else:
+      raise ValueError("invalid distribution for variance scaling initializer")
+
+  return init
+
 
 class Norm(nn.Module):
 
@@ -42,7 +102,7 @@ class Norm(nn.Module):
         return self.weight * sub / std + self.bias
     
 
-class Cond_norm(nn.Module):
+class ContNorm(nn.Module):
   def __init__(self, act, norm, ch, emb_dim = None, spectral=False, no_act=False, twod=True):
     super(get_act_norm, self).__init__()
     
