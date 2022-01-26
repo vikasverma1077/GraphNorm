@@ -22,5 +22,4 @@ python ../../train_graph_level.py \
     --log_norm \
     --norm_type $NORM \
     --graph_pooling_type sum \
-    --cross_validation \
     --learn_eps 
