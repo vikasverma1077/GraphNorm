@@ -64,7 +64,7 @@ class GCN(nn.Module):
             x = h
             h = self.gcnlayers[i](g, h)
             if t!=None:
-                h = self.norms[i](h, t_emb+y_emb)
+                h = self.norms[i](g, h, t_emb+y_emb)
             else:
                 h = self.norms[i](g, h)
             if i != 0:
