@@ -5,7 +5,7 @@ set -e
 # DS [PROTEINS, NCI1, MUTAG, PTC] for bioinformatics datasets
 GPU=0
 NORM=gn
-MODEL=GIN
+MODEL=GCN
 DS=PROTEINS
 EXP_NAME="DS"-test-comparison-gin
 LOG_PATH=../../../log/Example-test-comparison/gin-reproduce/"$DS"/"$NORM"/
