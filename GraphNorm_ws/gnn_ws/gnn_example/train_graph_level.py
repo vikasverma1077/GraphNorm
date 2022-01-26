@@ -103,7 +103,7 @@ def evaluate(args, model, dataloader, loss_fcn, num_classes):
                 target_reweighted = torch.zeros_like(F.one_hot(labels, num_classes)).float() ## make  one hot ##.size, args ## F.one_hot(labels, args.num_classes).float()
                 target_reweighted_s = (target_reweighted - 0.5) * 2.0 #set range from -1.0 to 1.0
                 z = torch.randn_like(target_reweighted_s)
-                time_ = torch.ones_like(labels, device=labes.device) ## torch.rand(target.shape[0], device=target.device) * (sde.T - eps) + eps
+                time_ = torch.ones_like(labels, device=labels.device) ## torch.rand(target.shape[0], device=target.device) * (sde.T - eps) + eps
                 mean, std = sde.marginal_prob(target_reweighted_s, time_)
                 perturbed_target = mean + std[:, None] * z # b, c
             else:
