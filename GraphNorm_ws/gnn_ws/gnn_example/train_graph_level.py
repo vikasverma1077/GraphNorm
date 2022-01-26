@@ -86,7 +86,7 @@ def task_model(args, dataset):
     return model, loss_fcn, optimizer
 
 
-def evaluate(model, dataloader, loss_fcn, num_classes):
+def evaluate(args, model, dataloader, loss_fcn, num_classes):
     model.eval()
     
     sde = VPSDE(beta_min=0.01, beta_max=0.01, N=1000) # bera_min= 0. beta_max=20, diffusion_num_scales=1000
@@ -102,7 +102,7 @@ def evaluate(model, dataloader, loss_fcn, num_classes):
             target_reweighted = torch.zeros_like(F.one_hot(labels, num_classes).float()) ## make  one hot ##.size, args ## F.one_hot(labels, args.num_classes).float()
             
             
-            if args.score:
+            if args.norm_type =='cont':
                 target_reweighted_s = (target_reweighted - 0.5) * 2.0 #set range from -1.0 to 1.0
                 z = torch.randn_like(target_reweighted_s)
                 time_ = 1.0 ## torch.rand(target.shape[0], device=target.device) * (sde.T - eps) + eps
@@ -180,8 +180,8 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer, num_clas
 
         print('Average Epoch Time {:.4f}'.format(float(sum(dur)/len(dur))))
 
-        valid_loss, valid_acc = evaluate(model, valid_loader, loss_fcn, num_classes)
-        train_loss, train_acc = evaluate(model, train_loader, loss_fcn. num_classes)
+        valid_loss, valid_acc = evaluate(args, model, valid_loader, loss_fcn, num_classes)
+        train_loss, train_acc = evaluate(args, model, train_loader, loss_fcn. num_classes)
         print('Train acc {:.4f}'.format(float(train_acc)))
         print('Test acc {:.4f}'.format(float(valid_acc)))
 
