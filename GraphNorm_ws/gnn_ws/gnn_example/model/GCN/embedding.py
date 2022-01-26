@@ -1,15 +1,8 @@
 import torch.nn as nn
 import torch
 import numpy as np
+from model.Norm import *
 
-
-
-def default_init(scale=1.):
-  """The same initialization used in DDPM."""
-  scale = 1e-10 if scale == 0 else scale
-  return variance_scaling(scale, 'fan_avg', 'uniform')
-  
-default_initializer = default_init
 
 class GaussianFourierProjectionTime(nn.Module):
   """Gaussian Fourier embeddings for noise levels."""
