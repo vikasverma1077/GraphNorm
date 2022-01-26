@@ -184,7 +184,7 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer, num_clas
 
         dur.append(time.time() - t0)
 
-        print('Average Epoch Time {:.4f}'.format(float(sum(dur)/len(dur))))
+        print('Epoch {:d}, Average Epoch Time {:.4f}'.format(epoch, float(sum(dur)/len(dur))))
 
         valid_loss, valid_acc = evaluate(args, model, valid_loader, loss_fcn, num_classes)
         train_loss, train_acc = evaluate(args, model, train_loader, loss_fcn, num_classes)
