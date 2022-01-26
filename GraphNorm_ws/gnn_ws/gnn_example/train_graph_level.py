@@ -250,7 +250,7 @@ if __name__ == '__main__':
                         help="learning rate")
     parser.add_argument("--dropout", type=float, default=0.5,
                         help='dropout probability')
-    parser.add_argument("--epoch", type=int, default=400,
+    parser.add_argument("--epoch", type=int, default=200,
                         help="number of training epochs")
     parser.add_argument("--n_hidden", type=int, default=64,
                         help='number of hidden gcn layers')
