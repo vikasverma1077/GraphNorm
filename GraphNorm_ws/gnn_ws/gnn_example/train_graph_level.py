@@ -98,24 +98,27 @@ def evaluate(args, model, dataloader, loss_fcn, num_classes):
     with torch.no_grad():
         for data in dataloader:
             graphs, labels = data
-            
-            if args.norm_type =='cont':
-                target_reweighted = torch.zeros_like(F.one_hot(labels, num_classes)).float() ## make  one hot ##.size, args ## F.one_hot(labels, args.num_classes).float()
-                target_reweighted_s = (target_reweighted - 0.5) * 2.0 #set range from -1.0 to 1.0
-                z = torch.randn_like(target_reweighted_s)
-                time_ = torch.ones_like(labels, device=labels.device) ## torch.rand(target.shape[0], device=target.device) * (sde.T - eps) + eps
-                mean, std = sde.marginal_prob(target_reweighted_s, time_)
-                perturbed_target = mean + std[:, None] * z # b, c
-            else:
-                time_ = None
-                perturbed_target = None
-                std = None
-                
-            
-            feat = graphs.ndata['attr'].cuda()
-            labels = labels.cuda()
-            total += len(labels)
-            outputs = model(graphs, feat)
+            outputs_list = []
+            for i in range(1):
+                if args.norm_type =='cont':
+                    target_reweighted = torch.zeros_like(F.one_hot(labels, num_classes)).float() ## make  one hot ##.size, args ## F.one_hot(labels, args.num_classes).float()
+                    target_reweighted_s = (target_reweighted - 0.5) * 2.0 #set range from -1.0 to 1.0
+                    z = torch.randn_like(target_reweighted_s)
+                    time_ = torch.ones_like(labels, device=labels.device) ## torch.rand(target.shape[0], device=target.device) * (sde.T - eps) + eps
+                    mean, std = sde.marginal_prob(target_reweighted_s, time_)
+                    perturbed_target = mean + std[:, None] * z # b, c
+                else:
+                    time_ = None
+                    perturbed_target = None
+                    std = None
+                    
+                feat = graphs.ndata['attr'].cuda()
+                labels = labels.cuda()
+                total += len(labels)
+                outputs = model(graphs, feat)
+                outputs_list.append(outputs)
+               
+            outputs = sum(outputs_list)/len(outputs_list)
             _, predicted = torch.max(outputs.data, 1)
 
             total_correct += (predicted == labels.data).sum().item()
