@@ -151,7 +151,7 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer, num_clas
                 target_reweighted = F.one_hot(labels, num_classes).float()
                 target_reweighted_s = (target_reweighted - 0.5) * 2.0 #set range from -1.0 to 1.0
                 z = torch.randn_like(target_reweighted_s)
-                time_ = torch.rand(target.shape[0], device=target.device) * (sde.T - eps) + eps
+                time_ = torch.rand(labels.shape[0], device=target.device) * (sde.T - eps) + eps
                 mean, std = sde.marginal_prob(target_reweighted_s, time_)
                 perturbed_target = mean + std[:, None] * z # b, c
             else:
