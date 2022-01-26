@@ -35,8 +35,8 @@ class GCN(nn.Module):
 
         
         if norm_type == 'cont':
-            self.TimeNet_1 = embedding.Time_Embedding(num_classes, hidden_dim, label=False, normalize=False, normalize_spectral=False)
-            self.LabelNet_1 = embedding.Time_Embedding(num_classes, hidden_dim, label=True, normalize=False, normalize_spectral=False)
+            self.TimeNet_1 = Time_Embedding(num_classes, hidden_dim, label=False, normalize=False, normalize_spectral=False)
+            self.LabelNet_1 = Time_Embedding(num_classes, hidden_dim, label=True, normalize=False, normalize_spectral=False)
         
         self.linears_prediction = nn.Linear(hidden_dim, output_dim)
         self.drop = nn.Dropout(final_dropout)
