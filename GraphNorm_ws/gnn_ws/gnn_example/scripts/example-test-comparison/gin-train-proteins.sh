@@ -23,5 +23,4 @@ python ../../train_graph_level.py \
     --norm_type $NORM \
     --graph_pooling_type sum \
     --cross_validation \
-    --self_loop \
     --learn_eps 
