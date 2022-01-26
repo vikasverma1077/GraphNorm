@@ -282,7 +282,7 @@ if __name__ == '__main__':
     parser.add_argument('--degree_as_label', action='store_true',
                         help='use node degree as node labels')
     parser.add_argument('--norm_type', type=str,
-                        default='gn', choices ['bn', 'gn', 'cont'],
+                        default='gn', choices=['bn', 'gn', 'cont'],
                         help='type of normalization')
 
 
