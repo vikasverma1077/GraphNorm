@@ -1,10 +1,23 @@
-from .unet_layers import *
 import torch.nn as nn
 import torch
 import numpy as np
 
-get_act = get_act
+
+
+def default_init(scale=1.):
+  """The same initialization used in DDPM."""
+  scale = 1e-10 if scale == 0 else scale
+  return variance_scaling(scale, 'fan_avg', 'uniform')
+  
 default_initializer = default_init
+
+class GaussianFourierProjectionTime(nn.Module):
+  """Gaussian Fourier embeddings for noise levels."""
+
+  def __init__(self, embedding_size=256, scale=1.0):
+    super().__init__()
+    self.W = nn.Parameter(torch.randn(embedding_size) * scale, requires_grad=False)
+
 
 # Small network that encodes the noise-level or noisy label embedding
 class Time_Embedding(nn.Module):
