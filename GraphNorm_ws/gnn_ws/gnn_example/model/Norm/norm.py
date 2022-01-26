@@ -126,7 +126,7 @@ class ContNorm(nn.Module):
   def forward(self, x, emb = None):
     if emb is not None:
       #emb = torch.cat([temb, yemb], dim=1) # Combine embeddings
-      emb_out = self.Dense_0(self.act(emb))#[:, :, None, None] # Linear projection
+      emb_out = self.Dense_0(emb)#[:, :, None, None] # Linear projection
       # ada-norm as in https://github.com/openai/guided-diffusion
       scale, shift = torch.chunk(emb_out, 2, dim=-1)
       #print(scale.size())
