@@ -159,7 +159,7 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer, num_clas
                 perturbed_target = None
                 std = None
 
-            print_scale_bias = (i == len(train_loader)-1 and epoch % 50 == 0)
+            #print_scale_bias = (i == len(train_loader)-1 and epoch % 50 == 0)
             
             labels = labels.cuda() #TODO
             features = graphs.ndata['attr'].cuda()
