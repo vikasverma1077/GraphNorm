@@ -48,6 +48,11 @@ class GaussianFourierProjectionTime(nn.Module):
   def __init__(self, embedding_size=256, scale=1.0):
     super().__init__()
     self.W = nn.Parameter(torch.randn(embedding_size) * scale, requires_grad=False)
+    
+  def forward(self, x):
+    x_proj = x[:, None] * self.W[None, :] * 2 * np.pi
+    return torch.cat([torch.sin(x_proj), torch.cos(x_proj)], dim=-1)
+
 
 
 # Small network that encodes the noise-level or noisy label embedding
