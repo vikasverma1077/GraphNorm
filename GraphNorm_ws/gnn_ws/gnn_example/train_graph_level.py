@@ -163,6 +163,9 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer, num_clas
             
             labels = labels.cuda() #TODO
             features = graphs.ndata['attr'].cuda()
+            time_ = time_.cuda()
+            perturbed_target = perturbed_target.cuda()
+            std = std.cuda()
             
             outputs = model(graphs, features, t=time_, y=perturbed_target, std=std)
             
