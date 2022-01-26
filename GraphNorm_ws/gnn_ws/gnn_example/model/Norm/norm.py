@@ -104,7 +104,7 @@ class Norm(nn.Module):
 
 class ContNorm(nn.Module):
   def __init__(self, act, norm, ch, emb_dim = None, spectral=False, no_act=False, twod=True):
-    super(get_act_norm, self).__init__()
+    super(ContNorm, self).__init__()
     
     self.norm = norm
     self.act = act
