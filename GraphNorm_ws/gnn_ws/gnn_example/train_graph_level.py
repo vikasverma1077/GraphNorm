@@ -154,6 +154,10 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer, num_clas
                 time_ = torch.rand(labels.shape[0], device=labels.device) * (sde.T - eps) + eps
                 mean, std = sde.marginal_prob(target_reweighted_s, time_)
                 perturbed_target = mean + std[:, None] * z # b, c
+                
+                time_ = time_.cuda()
+                perturbed_target = perturbed_target.cuda()
+                std = std.cuda()
             else:
                 time_ = None
                 perturbed_target = None
@@ -163,9 +167,7 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer, num_clas
             
             labels = labels.cuda() #TODO
             features = graphs.ndata['attr'].cuda()
-            time_ = time_.cuda()
-            perturbed_target = perturbed_target.cuda()
-            std = std.cuda()
+            
             
             outputs = model(graphs, features, t=time_, y=perturbed_target, std=std)
             
