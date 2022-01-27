@@ -110,6 +110,12 @@ def evaluate(args, model, dataloader, loss_fcn, num_classes):
                     time_ = torch.ones_like(labels, device=labels.device) ## torch.rand(target.shape[0], device=target.device) * (sde.T - eps) + eps
                     mean, std = sde.marginal_prob(target_reweighted_s, time_)
                     perturbed_target = mean + std[:, None] * z # b, c
+                    
+                    target_reweighted = target_reweighted.cuda()
+                    time_ = time_.cuda()
+                    perturbed_target = perturbed_target.cuda()
+                    std = std.cuda()
+                    
                 else:
                     time_ = None
                     perturbed_target = None
