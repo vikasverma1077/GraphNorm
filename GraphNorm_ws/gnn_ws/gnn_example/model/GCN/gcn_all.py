@@ -57,7 +57,7 @@ class GCN(nn.Module):
         split_list = g.batch_num_nodes
         
         if t!=None:
-            t_emb = self.TimeNet_1(t)
+            #t_emb = self.TimeNet_1(t)
             y_emb =  y #self.LabelNet_1(y)
         
         graph = g
