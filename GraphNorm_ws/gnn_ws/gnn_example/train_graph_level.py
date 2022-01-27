@@ -92,7 +92,7 @@ def task_model(args, dataset):
 def evaluate(args, model, dataloader, loss_fcn, num_classes, train=False):
     model.eval()
     
-    sde = VPSDE(beta_min=0.01, beta_max=0.01, N=1000) # bera_min= 0. beta_max=20, diffusion_num_scales=1000
+    sde = VPSDE(beta_min=0.1, beta_max=20, N=1000) # bera_min= 0. beta_max=20, diffusion_num_scales=1000
     eps = 1e-5
     
     total = 0
@@ -136,10 +136,10 @@ def evaluate(args, model, dataloader, loss_fcn, num_classes, train=False):
                     
                 feat = graphs.ndata['attr'].cuda()
                 labels = labels.cuda()
-                total += len(labels)
                 outputs = model(graphs, feat, t=time_, y=perturbed_target, std=std)
                 outputs_list.append(outputs)
-               
+            
+            total += len(labels)
             outputs = sum(outputs_list)/len(outputs_list)
             _, predicted = torch.max(outputs.data, 1)
 
@@ -161,7 +161,7 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer, num_clas
     param_record = {}
     
     
-    sde = VPSDE(beta_min=0.01, beta_max=0.01, N=1000) # bera_min= 0. beta_max=20, diffusion_num_scales=1000
+    sde = VPSDE(beta_min=0.1, beta_max=0.20, N=1000) # bera_min= 0. beta_max=20, diffusion_num_scales=1000
     eps = 1e-5
 
 
