@@ -102,7 +102,7 @@ def evaluate(args, model, dataloader, loss_fcn, num_classes, train=False):
         for data in dataloader:
             graphs, labels = data
             outputs_list = []
-            for i in range(1):
+            for i in range(10):
                 if args.norm_type =='cont' and train == False:
                     target_reweighted = torch.zeros_like(F.one_hot(labels, num_classes)).float() ## make  one hot ##.size, args ## F.one_hot(labels, args.num_classes).float()
                     target_reweighted_s = (target_reweighted - 0.5) * 2.0 #set range from -1.0 to 1.0
@@ -202,10 +202,10 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer, num_clas
             if args.norm_type == 'cont':
                 #loss = bce_loss(softmax(outputs), target_reweighted)
                 loss = loss_fcn(outputs, labels)
-                print(loss)
+                #print(loss)
             else:
                 loss = loss_fcn(outputs, labels)
-                print(loss)
+                #print(loss)
             loss.backward()
 
             optimizer.step()
