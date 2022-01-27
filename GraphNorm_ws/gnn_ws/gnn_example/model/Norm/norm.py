@@ -137,7 +137,7 @@ class ContNorm(nn.Module):
       #print(scale.size())
       #print(shift.size())
       #print(x.size())
-      x = self.Norm_0(x) * (1 + scale) + shift
+      x = self.Norm_0(x)+ shift #self.Norm_0(x) * (1 + scale) + shift #
     else:
       x = self.Norm_0(x)
     if not self.no_act: #  we don't apply activation with evo-norm since it's part of it
