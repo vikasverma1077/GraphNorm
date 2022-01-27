@@ -31,7 +31,7 @@ class GCN(nn.Module):
                 self.norms.append(Norm(norm_type, hidden_dim))
             
             if norm_type == 'cont':
-                self.norms.append(ContNorm(act=None, norm= "batch", ch= hidden_dim, emb_dim = hidden_dim, spectral=False, no_act=True, twod=False))
+                self.norms.append(ContNorm(act=None, norm= "group", ch= hidden_dim, emb_dim = hidden_dim, spectral=False, no_act=True, twod=False))
 
         
         if norm_type == 'cont':
