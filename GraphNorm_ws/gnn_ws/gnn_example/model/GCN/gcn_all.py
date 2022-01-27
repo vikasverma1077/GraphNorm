@@ -60,13 +60,13 @@ class GCN(nn.Module):
             #t_emb = self.TimeNet_1(t)
             y_emb =  y #self.LabelNet_1(y)
         
-        graph = g
-        node_per_graph = graph.batch_num_nodes
-        node_per_graph = torch.Tensor(node_per_graph).long().cuda()
-        #scale = scale.repeat_interleave(node_per_graph, dim=0)
-        y_emb = y_emb.repeat_interleave(node_per_graph, dim=0)
+            graph = g
+            node_per_graph = graph.batch_num_nodes
+            node_per_graph = torch.Tensor(node_per_graph).long().cuda()
+            #scale = scale.repeat_interleave(node_per_graph, dim=0)
+            y_emb = y_emb.repeat_interleave(node_per_graph, dim=0)
         
-        h = torch.cat((h,y_emb), dim=1)
+            h = torch.cat((h,y_emb), dim=1)
         for i in range(self.num_layers - 1):
             x=h
             h = self.gcnlayers[i](g, h)
