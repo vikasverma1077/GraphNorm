@@ -118,7 +118,7 @@ def evaluate(args, model, dataloader, loss_fcn, num_classes):
                 feat = graphs.ndata['attr'].cuda()
                 labels = labels.cuda()
                 total += len(labels)
-                outputs = model(graphs, feat)
+                outputs = model(graphs, feat, t=time_, y=perturbed_target, std=std)
                 outputs_list.append(outputs)
                
             outputs = sum(outputs_list)/len(outputs_list)
