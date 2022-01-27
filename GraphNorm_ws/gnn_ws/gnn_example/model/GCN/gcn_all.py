@@ -62,7 +62,7 @@ class GCN(nn.Module):
         
         graph = g
         node_per_graph = graph.batch_num_nodes
-        node_per_graph = torch.Tensor(node_per_graph).long().to(h.device)
+        node_per_graph = torch.Tensor(node_per_graph).long().cuda()
         #scale = scale.repeat_interleave(node_per_graph, dim=0)
         y_emb = y_emb.repeat_interleave(node_per_graph, dim=0)
         
