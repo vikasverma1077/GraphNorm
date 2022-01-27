@@ -58,15 +58,14 @@ class GCN(nn.Module):
         
         if t!=None:
             t_emb = self.TimeNet_1(t)
-            y_emb = self.LabelNet_1(y)
+            y_emb =  y_emb #self.LabelNet_1(y)
         
+        
+        h=torch.cat(h,y_emb, dim=1)
         for i in range(self.num_layers - 1):
-            x = h
+            x=h
             h = self.gcnlayers[i](g, h)
-            if t!=None:
-                h = self.norms[i](g, h, t_emb+y_emb)
-            else:
-                h = self.norms[i](g, h)
+            h = self.norms[i](g, h)
             if i != 0:
                 h = F.relu(h) + x
             else:
