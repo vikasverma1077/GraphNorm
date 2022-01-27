@@ -188,8 +188,10 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer, num_clas
 
             if args.norm_type == 'cont':
                 loss = bce_loss(softmax(outputs), target_reweighted)
+                print(loss)
             else:
                 loss = loss_fcn(outputs, labels)
+                print(loss)
             loss.backward()
 
             optimizer.step()
