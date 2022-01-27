@@ -4,7 +4,7 @@ set -e
 
 # DS [PROTEINS, NCI1, MUTAG, PTC] for bioinformatics datasets
 GPU=0
-NORM=gn
+NORM=cont
 MODEL=GCN
 DS=PROTEINS
 EXP_NAME="DS"-test-comparison-gin
