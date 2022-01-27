@@ -89,7 +89,7 @@ def task_model(args, dataset):
     return model, loss_fcn, optimizer
 
 
-def evaluate(args, model, dataloader, loss_fcn, num_classes):
+def evaluate(args, model, dataloader, loss_fcn, num_classes, train=False):
     model.eval()
     
     sde = VPSDE(beta_min=0.01, beta_max=0.01, N=1000) # bera_min= 0. beta_max=20, diffusion_num_scales=1000
@@ -103,11 +103,24 @@ def evaluate(args, model, dataloader, loss_fcn, num_classes):
             graphs, labels = data
             outputs_list = []
             for i in range(1):
-                if args.norm_type =='cont':
+                if args.norm_type =='cont' and train == False:
                     target_reweighted = torch.zeros_like(F.one_hot(labels, num_classes)).float() ## make  one hot ##.size, args ## F.one_hot(labels, args.num_classes).float()
                     target_reweighted_s = (target_reweighted - 0.5) * 2.0 #set range from -1.0 to 1.0
                     z = torch.randn_like(target_reweighted_s)
                     time_ = torch.ones_like(labels, device=labels.device) ## torch.rand(target.shape[0], device=target.device) * (sde.T - eps) + eps
+                    mean, std = sde.marginal_prob(target_reweighted_s, time_)
+                    perturbed_target = mean + std[:, None] * z # b, c
+                    
+                    target_reweighted = target_reweighted.cuda()
+                    time_ = time_.cuda()
+                    perturbed_target = perturbed_target.cuda()
+                    std = std.cuda()
+                
+                elif args.norm_type =='cont' and train == True:
+                    target_reweighted = F.one_hot(labels, num_classes).float()
+                    target_reweighted_s = (target_reweighted - 0.5) * 2.0 #set range from -1.0 to 1.0
+                    z = torch.randn_like(target_reweighted_s)
+                    time_ = torch.rand(labels.shape[0], device=labels.device) * (sde.T - eps) + eps
                     mean, std = sde.marginal_prob(target_reweighted_s, time_)
                     perturbed_target = mean + std[:, None] * z # b, c
                     
@@ -202,8 +215,8 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer, num_clas
 
         print('Epoch {:d}, Average Epoch Time {:.4f}'.format(epoch, float(sum(dur)/len(dur))))
 
-        valid_loss, valid_acc = evaluate(args, model, valid_loader, loss_fcn, num_classes)
-        train_loss, train_acc = evaluate(args, model, train_loader, loss_fcn, num_classes)
+        valid_loss, valid_acc = evaluate(args, model, valid_loader, loss_fcn, num_classes, train=False)
+        train_loss, train_acc = evaluate(args, model, train_loader, loss_fcn, num_classes, train=True)
         print('Train acc {:.4f}'.format(float(train_acc)))
         print('Test acc {:.4f}'.format(float(valid_acc)))
 

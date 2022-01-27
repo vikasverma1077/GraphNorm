@@ -67,6 +67,7 @@ class GCN(nn.Module):
             y_emb = y_emb.repeat_interleave(node_per_graph, dim=0)
         
             h = torch.cat((h,y_emb), dim=1)
+            
         for i in range(self.num_layers - 1):
             x=h
             h = self.gcnlayers[i](g, h)
