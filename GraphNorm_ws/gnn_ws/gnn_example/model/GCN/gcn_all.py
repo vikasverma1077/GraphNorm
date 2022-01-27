@@ -57,9 +57,10 @@ class GCN(nn.Module):
         split_list = g.batch_num_nodes
         
         if t!=None:
-            #t_emb = self.TimeNet_1(t)
-            y_emb =  y #self.LabelNet_1(y)
-        
+            t_emb = self.TimeNet_1(t)
+            y_emb = self.LabelNet_1(y)
+            
+            """
             graph = g
             node_per_graph = graph.batch_num_nodes
             node_per_graph = torch.Tensor(node_per_graph).long().cuda()
@@ -67,11 +68,15 @@ class GCN(nn.Module):
             y_emb = y_emb.repeat_interleave(node_per_graph, dim=0)
         
             h = torch.cat((h,y_emb), dim=1)
+            """
             
         for i in range(self.num_layers - 1):
-            x=h
+            x = h
             h = self.gcnlayers[i](g, h)
-            h = self.norms[i](g, h)
+            if t!=None:
+                h = self.norms[i](g, h, t_emb+y_emb)
+            else:
+                h = self.norms[i](g, h)
             if i != 0:
                 h = F.relu(h) + x
             else:

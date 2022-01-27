@@ -126,18 +126,18 @@ class ContNorm(nn.Module):
   def forward(self, graph, x, emb = None):
     if emb is not None:
       #emb = torch.cat([temb, yemb], dim=1) # Combine embeddings
-      #emb_out = self.Dense_0(emb)#[:, :, None, None] # Linear projection
+      emb_out = self.Dense_0(emb)#[:, :, None, None] # Linear projection
       # ada-norm as in https://github.com/openai/guided-diffusion
-      #scale, shift = torch.chunk(emb_out, 2, dim=-1)
+      scale, shift = torch.chunk(emb_out, 2, dim=-1)
       
       node_per_graph = graph.batch_num_nodes
       node_per_graph = torch.Tensor(node_per_graph).long().to(x.device)
-      #scale = scale.repeat_interleave(node_per_graph, dim=0)
-      shift = emb.repeat_interleave(node_per_graph, dim=0)
+      scale = scale.repeat_interleave(node_per_graph, dim=0)
+      shift = shift.repeat_interleave(node_per_graph, dim=0)
       #print(scale.size())
       #print(shift.size())
       #print(x.size())
-      x = self.Norm_0(x) #+ shift #self.Norm_0(x) * (1 + scale) + shift #
+      x = self.Norm_0(x) * (1 + scale) + shift
     else:
       x = self.Norm_0(x)
     if not self.no_act: #  we don't apply activation with evo-norm since it's part of it
