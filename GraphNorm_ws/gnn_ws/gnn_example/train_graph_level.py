@@ -13,6 +13,9 @@ from sde_lib import VPSDE
 from sde_sampling import get_sampling_fn
 
 
+softmax = nn.Softmax(dim=1).cuda()
+bce_loss = nn.BCELoss().cuda()
+
 def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
@@ -156,6 +159,7 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer, num_clas
                 mean, std = sde.marginal_prob(target_reweighted_s, time_)
                 perturbed_target = mean + std[:, None] * z # b, c
                 
+                target_reweighted = target_reweighted.cuda()
                 time_ = time_.cuda()
                 perturbed_target = perturbed_target.cuda()
                 std = std.cuda()
@@ -176,7 +180,10 @@ def train(args, train_loader, valid_loader, model, loss_fcn, optimizer, num_clas
 
             optimizer.zero_grad()
 
-            loss = loss_fcn(outputs, labels)
+            if args.norm_type == 'cont':
+                loss = bce_loss(softmax(outputs), target_reweighted)
+            else:
+                loss = loss_fcn(outputs, labels)
             loss.backward()
 
             optimizer.step()
